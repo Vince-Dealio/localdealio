@@ -19,3 +19,5 @@ These rules are enforced to maintain consistent code quality and avoid common bu
 ---
 
 Each rule has its own `.md` file with details and examples.
+
+<!-- Test commit from Vince-Dealio account -->
