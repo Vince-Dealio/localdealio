@@ -1,10 +1,10 @@
-// ✅ Full code for /src/app/page.tsx — Client-only Leaflet Map
-"use client";
+// ✅ Full code for /src/app/page.tsx — Client Component wrapper for MapView
+'use client';
 
-import dynamic from "next/dynamic";
+import dynamic from 'next/dynamic';
 
-// ✅ Dynamically import the Map component only on client
-const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
+// Load the Leaflet map only on the client (no SSR to avoid `window` errors)
+const MapView = dynamic(() => import('@/components/MapView'), { ssr: false });
 
 export default function HomePage() {
   return <MapView />;
