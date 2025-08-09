@@ -1,68 +1,86 @@
-// ✅ Full code for /src/app/page.tsx — LocalDealio homepage
-import Link from "next/link";
+// ✅ Full code for /src/app/page.tsx — full-screen OSM with clustered markers
+"use client";
+
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import MarkerClusterGroup from "react-leaflet-cluster";
+import L from "leaflet";
+
+// Fix default marker icons in Next.js via imports
+import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
+import markerIcon from "leaflet/dist/images/marker-icon.png";
+import markerShadow from "leaflet/dist/images/marker-shadow.png";
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: (markerIcon2x as unknown as string),
+  iconUrl: (markerIcon as unknown as string),
+  shadowUrl: (markerShadow as unknown as string),
+});
+
+type Dealio = {
+  id: string;
+  name: string;
+  lat: number;
+  lng: number;
+  category: string;
+};
+
+const SAMPLE_DEALIOS: Dealio[] = [
+  { id: "1", name: "Joe’s Coffee – 2-for-1 Latte", lat: 51.5074, lng: -0.1278, category: "Food & Drink" },
+  { id: "2", name: "Amy’s Bakery – 20% off",     lat: 51.515,  lng: -0.09,    category: "Food & Drink" },
+  { id: "3", name: "FixIt Fast – Free Diagnosis", lat: 51.503,  lng: -0.08,    category: "Services"     },
+  { id: "4", name: "Green Garden – 10% Plants",   lat: 51.509,  lng: -0.1,     category: "Home & Garden" },
+  { id: "5", name: "Sunshine Cafe – Lunch Deal",  lat: 51.51,   lng: -0.12,    category: "Food & Drink" },
+  { id: "6", name: "Tech Hub – Student Discount", lat: 51.505,  lng: -0.09,    category: "Electronics"   },
+  { id: "7", name: "Art by Amy – 15% Prints",     lat: 51.512,  lng: -0.095,   category: "Arts & Crafts" },
+  { id: "8", name: "Daniel’s Deli – Free Cookie", lat: 51.507,  lng: -0.11,    category: "Food & Drink" },
+];
+
+const createClusterCustomIcon = (cluster: any) => {
+  const count = cluster.getChildCount();
+  return L.divIcon({
+    html: `<div style="
+      background: rgba(0,0,0,0.75);
+      color: #fff;
+      width: 40px; height: 40px;
+      display: grid; place-items: center;
+      border-radius: 9999px;
+      font-weight: 700;
+      ">
+      ${count}
+    </div>`,
+    className: "cluster-marker",
+    iconSize: L.point(40, 40, true),
+  });
+};
 
 export default function HomePage() {
+  const center: [number, number] = [51.5074, -0.1278]; // London
+
   return (
-    <div className="max-w-5xl mx-auto px-4 py-10 space-y-12">
-      {/* Hero */}
-      <section className="text-center space-y-6">
-        <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight">
-          Find & share local deals with <span className="text-gray-900">LocalDealio</span>
-        </h1>
-        <p className="text-gray-600 max-w-2xl mx-auto">
-          A simple way for neighborhoods and small businesses to highlight discounts,
-          flash sales, and special offers — all in one place.
-        </p>
-
-        <div className="flex items-center justify-center gap-3">
-          <Link
-            href="/login"
-            className="inline-flex items-center justify-center rounded-xl border border-gray-300 px-5 py-2.5 text-sm font-medium hover:bg-gray-100"
-          >
-            Log in
-          </Link>
-          <Link
-            href="/signup"
-            className="inline-flex items-center justify-center rounded-xl bg-black text-white px-5 py-2.5 text-sm font-medium hover:opacity-90"
-          >
-            Create an account
-          </Link>
-        </div>
-      </section>
-
-      {/* Placeholder “how it works” */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="rounded-2xl border p-6">
-          <h3 className="font-semibold mb-2">1. Post a deal</h3>
-          <p className="text-sm text-gray-600">
-            Share your offer, hours, and location. It takes just a minute.
-          </p>
-        </div>
-        <div className="rounded-2xl border p-6">
-          <h3 className="font-semibold mb-2">2. Get discovered</h3>
-          <p className="text-sm text-gray-600">
-            Locals nearby see your deal on the feed and map.
-          </p>
-        </div>
-        <div className="rounded-2xl border p-6">
-          <h3 className="font-semibold mb-2">3. Track interest</h3>
-          <p className="text-sm text-gray-600">
-            Simple analytics show views and saves (coming soon).
-          </p>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="rounded-2xl border p-8 text-center">
-        <h2 className="text-2xl font-bold mb-2">Ready to share your first deal?</h2>
-        <p className="text-gray-600 mb-4">It’s free to start. Upgrade anytime.</p>
-        <Link
-          href="/signup"
-          className="inline-flex items-center justify-center rounded-xl bg-black text-white px-6 py-3 text-sm font-medium hover:opacity-90"
+    <div className="h-screen w-screen">
+      <MapContainer center={center} zoom={12} className="h-full w-full" scrollWheelZoom>
+        <TileLayer
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        />
+        <MarkerClusterGroup
+          chunkedLoading
+          iconCreateFunction={createClusterCustomIcon}
+          showCoverageOnHover={false}
+          spiderfyOnMaxZoom
         >
-          Get started
-        </Link>
-      </section>
+          {SAMPLE_DEALIOS.map((d) => (
+            <Marker key={d.id} position={[d.lat, d.lng]}>
+              <Popup>
+                <div className="space-y-1">
+                  <div className="font-semibold">{d.name}</div>
+                  <div className="text-xs text-gray-600">{d.category}</div>
+                </div>
+              </Popup>
+            </Marker>
+          ))}
+        </MarkerClusterGroup>
+      </MapContainer>
     </div>
   );
 }
