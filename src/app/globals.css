@@ -1,0 +1,29 @@
+/* ✅ Full code for /src/app/globals.css */
+
+/* Tailwind base layers */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Light reset + defaults */
+:root {
+  --bg: #ffffff;
+  --fg: #111111;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Make focus states visible */
+:focus-visible {
+  outline: 2px solid;
+  outline-offset: 2px;
+}
