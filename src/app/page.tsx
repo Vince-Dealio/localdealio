@@ -1,4 +1,3 @@
-// ✅ Full code for /src/app/page.tsx — full-screen OSM with clustered markers
 "use client";
 
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
@@ -6,16 +5,19 @@ import "leaflet/dist/leaflet.css";
 import MarkerClusterGroup from "react-leaflet-cluster";
 import L from "leaflet";
 
-// Fix default marker icons in Next.js via imports
-import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
-import markerIcon from "leaflet/dist/images/marker-icon.png";
-import markerShadow from "leaflet/dist/images/marker-shadow.png";
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: (markerIcon2x as unknown as string),
-  iconUrl: (markerIcon as unknown as string),
-  shadowUrl: (markerShadow as unknown as string),
+// ✅ Override default marker icons to load from /public/leaflet
+const defaultIcon = L.icon({
+  iconRetinaUrl: "/leaflet/marker-icon-2x.png",
+  iconUrl: "/leaflet/marker-icon.png",
+  shadowUrl: "/leaflet/marker-shadow.png",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
 });
+L.Marker.prototype.options.icon = defaultIcon;
 
+// --- Sample data
 type Dealio = {
   id: string;
   name: string;
@@ -35,6 +37,7 @@ const SAMPLE_DEALIOS: Dealio[] = [
   { id: "8", name: "Daniel’s Deli – Free Cookie", lat: 51.507,  lng: -0.11,    category: "Food & Drink" },
 ];
 
+// ✅ Custom cluster icon
 const createClusterCustomIcon = (cluster: any) => {
   const count = cluster.getChildCount();
   return L.divIcon({
@@ -63,6 +66,7 @@ export default function HomePage() {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
+
         <MarkerClusterGroup
           chunkedLoading
           iconCreateFunction={createClusterCustomIcon}
