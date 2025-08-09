@@ -1,11 +1,14 @@
-// ✅ Full code for /src/app/page.tsx — Client Component wrapper for MapView
-'use client';
+// /src/app/page.tsx
+"use client";
+import dynamic from "next/dynamic";
 
-import dynamic from 'next/dynamic';
-
-// Load the Leaflet map only on the client (no SSR to avoid `window` errors)
-const MapView = dynamic(() => import('@/components/MapView'), { ssr: false });
+const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
 
 export default function HomePage() {
-  return <MapView />;
+  // Header in your layout is ~5rem (pt-20). Adjust if yours differs.
+  return (
+    <div className="fixed inset-0 top-20"> 
+      <MapView />
+    </div>
+  );
 }
