@@ -1,23 +1,18 @@
-// ✅ Full code for docs/AllRules/README.md
-# AllRules — Development Rules for digi.site
+# AllRules Index
 
-This folder contains all permanent development rules for the digi.site project.  
-These rules are enforced to maintain consistent code quality and avoid common build errors.
+This folder contains all development rules for the LocalDealio (and related) projects.  
+Each rule has its own `.md` file with details, reasoning, and usage.
 
----
+## Rules List
 
-## Current Rules
+- **Rule1** – Always supply the full page code and Git commands when updating a file, as explained earlier.
+- **RuleDev1-LSLint** – In Next.js, never use plain `<a>` for internal navigation. Always use `<Link>` from `next/link` for internal routes; keep `<a>` only for external URLs. This avoids ESLint build failures on Vercel.
+- **RuleDev2-PrismaNoUnusedTsExpect** – Never leave unused `@ts-expect-error` in API or server code. If Prisma models exist (e.g., `pendingUser`), remove `@ts-expect-error` lines and type the calls properly.
+- **RuleDev3-TSInputMode** – `inputMode` in JSX/TSX must be one of the TypeScript-allowed values: `none`, `text`, `tel`, `url`, `email`, `numeric`, `decimal`, or `search`.
+- **RuleDev5-EnvLocal** – Always use `.env.local` for sensitive/local variables; `.env` is for safe defaults only.
+- **RuleDev6-NoPackageJsonComments** – Never put comments in `package.json`; JSON does not support comments.
 
-- **[Rule1](./Rule1.md)** — Always provide full file replacements with Git commands when updating a file.
-- **[RuleDev1-LSLint](./RuleDev1-LSLint.md)** — Use `<Link>` from `next/link` for internal navigation, `<a>` only for external.
-- **[RuleDev2-SuspenseSearchParams](./RuleDev2-SuspenseSearchParams.md)** — If using `useSearchParams()` in a page, wrap it in `<Suspense>` and move logic to a client component.
-- **[RuleDev3-NoCommentsInJSON](./RuleDev3-NoCommentsInJSON.md)** — No comments allowed inside `.json` files.
-- **[RuleDev2-PrismaNoUnusedTsExpect](./RuleDev2-PrismaNoUnusedTsExpect.md)** — No unused `@ts-expect-error` for existing Prisma models.
-- **[RuleDev3-TSInputMode](./RuleDev3-TSInputMode.md)** — Only use TypeScript-allowed `inputMode` values (`none | text | tel | url | email | numeric | decimal | search`).
-- **[RuleDev4-UseClientInAppPages](./RuleDev4-UseClientInAppPages.md)** — Add `"use client"` at the top of `src/app/*` files that use React hooks or browser APIs.
+## Usage
 
----
-
-Each rule has its own `.md` file with details and examples.
-
-<!-- Test commit from Vince-Dealio account -->
+- Refer to these rules before making code changes.
+- If adding a new rule, create a new `.md` file in this folder and link it here.
