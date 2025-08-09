@@ -1,16 +1,18 @@
-// ✅ Full code for /next.config.ts — adds security headers (CSP, HSTS, etc.)
+// ✅ Full code for /next.config.ts — Stripe + OpenStreetMap CSP, HSTS, etc.
 import type { NextConfig } from "next";
 
 const isProd = process.env.NODE_ENV === "production";
 
-// Adjust CSP only if you add new external resources (analytics, fonts, etc.)
+// CSP: Allow Stripe, OSM tiles, inline/eval in dev
 const csp = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com",
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob:",
+  // ✅ Allow OSM tiles in images
+  "img-src 'self' data: blob: https://tile.openstreetmap.org https://*.tile.openstreetmap.org",
   "font-src 'self'",
-  "connect-src 'self' https:",
+  // ✅ Allow OSM tile requests in connect-src
+  "connect-src 'self' https: https://tile.openstreetmap.org https://*.tile.openstreetmap.org",
   "frame-src 'self' https://js.stripe.com https://hooks.stripe.com",
   "frame-ancestors 'none'",
   "form-action 'self' https://checkout.stripe.com",
@@ -25,7 +27,6 @@ const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-DNS-Prefetch-Control", value: "off" },
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
-  // Only send HSTS in production (avoid issues on localhost)
   ...(isProd
     ? [{ key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" }]
     : []),
