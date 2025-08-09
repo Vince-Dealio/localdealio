@@ -1,22 +1,32 @@
-// ✅ Full code for /next.config.ts — Stripe + OpenStreetMap CSP, HSTS, etc.
+// ✅ Full code for /next.config.ts — tailored CSP for LocalDealio (Stripe + OpenStreetMap)
 import type { NextConfig } from "next";
 
 const isProd = process.env.NODE_ENV === "production";
 
-// CSP: Allow Stripe, OSM tiles, inline/eval in dev
+// CSP: lock down resources but allow Stripe + OpenStreetMap
 const csp = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com",
+  // Scripts: allow Stripe + unsafe-inline/eval in dev only
+  isProd
+    ? "script-src 'self' https://js.stripe.com"
+    : "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com",
+  // Styles: allow inline styles (needed for Tailwind JIT)
   "style-src 'self' 'unsafe-inline'",
-  // ✅ Allow OSM tiles in images
+  // Images: self, inline data/blobs, OSM tiles
   "img-src 'self' data: blob: https://tile.openstreetmap.org https://*.tile.openstreetmap.org",
-  "font-src 'self'",
-  // ✅ Allow OSM tile requests in connect-src
-  "connect-src 'self' https: https://tile.openstreetmap.org https://*.tile.openstreetmap.org",
-  "frame-src 'self' https://js.stripe.com https://hooks.stripe.com",
+  // Fonts: self + inline data
+  "font-src 'self' data:",
+  // Connections: self, OSM tiles, Stripe
+  "connect-src 'self' https://tile.openstreetmap.org https://*.tile.openstreetmap.org https://js.stripe.com https://api.stripe.com",
+  // Frames: self + Stripe checkout/hooks
+  "frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://checkout.stripe.com",
+  // Disallow embedding in other sites
   "frame-ancestors 'none'",
+  // Allow form submissions to Stripe checkout
   "form-action 'self' https://checkout.stripe.com",
+  // Disallow changing base URL
   "base-uri 'self'",
+  // Disallow plugins/objects
   "object-src 'none'",
 ].join("; ");
 
