@@ -1,4 +1,4 @@
-// ✅ Full code for src/components/MapView.tsx
+// ✅ Full code for src/components/MapView.tsx — TypeScript safe, no 'any'
 "use client";
 
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
@@ -8,14 +8,14 @@ import icon from "leaflet/dist/images/marker-icon.png";
 import shadow from "leaflet/dist/images/marker-shadow.png";
 
 const defaultIcon = L.icon({
-  iconUrl: (icon as any).src ?? icon, // ensure string
-  shadowUrl: (shadow as any).src ?? shadow,
+  iconUrl: typeof icon === "string" ? icon : (icon as { src: string }).src,
+  shadowUrl: typeof shadow === "string" ? shadow : (shadow as { src: string }).src,
   iconSize: [25, 41],
   iconAnchor: [12, 41],
 });
 L.Marker.prototype.options.icon = defaultIcon;
 
-const sampleMarkers = [
+const sampleMarkers: { position: [number, number]; popup: string }[] = [
   { position: [51.505, -0.09], popup: "Marker 1" },
   { position: [51.51, -0.1], popup: "Marker 2" },
   { position: [51.49, -0.08], popup: "Marker 3" },
