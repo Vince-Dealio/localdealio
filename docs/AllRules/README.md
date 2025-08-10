@@ -16,3 +16,21 @@ Each rule has its own `.md` file with details, reasoning, and usage.
 
 - Refer to these rules before making code changes.
 - If adding a new rule, create a new `.md` file in this folder and link it here.
+
+
+---
+
+## 📍 Map Rules Reference
+
+All map-related rules for LocalDealio are documented in:
+
+➡ [AllMaps/MapRules.md](./AllMaps/MapRules.md)
+
+This file includes:
+- ✅ Clustering setup using `react-leaflet-cluster`
+- ✅ React 19 installation workaround with `--legacy-peer-deps`
+- Future map-related rules and best practices
+
+Keep this as the single source of truth for all map feature decisions.
+
+
