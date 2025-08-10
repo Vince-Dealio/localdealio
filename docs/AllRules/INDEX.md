@@ -1,5 +1,3 @@
-// ✅ Full code for docs/AllRules/INDEX.md — replace entire file
-
 # All Rules – Index (LocalDealio)
 
 ID: INDEX  
@@ -17,7 +15,7 @@ Summary: Central navigation page for all LocalDealio rules, grouped by category.
 ---
 
 ## Dev & Lint Rules
-- **Category Page:** [../../AllDev/Rules.md](../../AllDev/Rules.md)
+- **Category Page:** [../AllDev/Rules.md](../AllDev/Rules.md)
 - DEV-01: Use `<Link>` for internal navigation (Status: Active)
 - DEV-02: Remove unused `@ts-expect-error` (Status: Active)
 - DEV-03: Valid `inputMode` values only (Status: Active)
@@ -25,7 +23,7 @@ Summary: Central navigation page for all LocalDealio rules, grouped by category.
 ---
 
 ## Build & Deploy Rules
-- **Category Page:** [../../AllBuild/Rules.md](../../AllBuild/Rules.md)
+- **Category Page:** [../AllBuild/Rules.md](../AllBuild/Rules.md)
 - BUILD-01: `.env.local` usage (Status: Active)
 - BUILD-02: No comments in `package.json` (Status: Active)
 - BUILD-03: Keep Vercel builds lint/TS clean (Status: Active)
@@ -33,14 +31,18 @@ Summary: Central navigation page for all LocalDealio rules, grouped by category.
 ---
 
 ## Auth Rules
-- **Category Page:** [../../AllAuth/Rules.md](../../AllAuth/Rules.md)
-- AUTH-01: Magic Link login flow (Status: Active)
-- AUTH-02: Clerk vs NextAuth decision log (Status: Active)
+- **Category Page:** [../AllAuth/Rules.md](../AllAuth/Rules.md)
+- AUTH-01: Environments & Secrets (Status: Active)  
+  ↳ [Open](../AllAuth/Rules.md#auth-01--environments--secrets)
+- AUTH-02: NextAuth Structure & Runtime (Status: Active)  
+  ↳ [Open](../AllAuth/Rules.md#auth-02--nextauth-structure--runtime)
+- **AUTH-03: Email Magic Link (NextAuth + Prisma + Resend + Neon) (Status: Active)**  
+  ↳ [Open](../AllAuth/Rules.md#auth-03--email-magic-link-nextauth--prisma--resend--neon)
 
 ---
 
 ## Other / Misc Rules
-- **Category Page:** [../../AllMisc/Rules.md](../../AllMisc/Rules.md)
+- **Category Page:** [../AllMisc/Rules.md](../AllMisc/Rules.md)
 - MISC-01: Reserved URL paths (Status: Active)
 - MISC-02: Project naming conventions (Status: Active)
 - MISC-03: General UI consistency (Status: Active)
@@ -56,4 +58,5 @@ Summary: Central navigation page for all LocalDealio rules, grouped by category.
 ---
 
 ## Changelog
-- 2025-08-10: Added DOMAINS-01 (www → apex 308) and updated index.
+- 2025-08-10: Added AUTH-03 (Email Magic Link), fixed relative links, kept existing entries.
+- 2025-08-10: Added DOMAINS-01 (www → apex 308) and initial index.
