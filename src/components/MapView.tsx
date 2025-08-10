@@ -1,3 +1,6 @@
+// ✅ Full code for src/components/MapView.tsx
+// Rule1: replace the current file with this version.
+
 "use client";
 
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
@@ -57,11 +60,17 @@ export default function MapView() {
       <MapContainer
         center={[51.5074, -0.1278]}
         zoom={12}
+        maxZoom={19}            // allow closer zoom
+        zoomControl={false}     // hide Leaflet zoom buttons
+        scrollWheelZoom={true}  // ensure wheel zoom is enabled
         style={{ height: "100%", width: "100%" }}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          maxZoom={19}          // layer must also allow z19
+          maxNativeZoom={19}
+          detectRetina
         />
 
         <MarkerClusterGroup chunkedLoading>
