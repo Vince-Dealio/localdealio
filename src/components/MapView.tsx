@@ -61,23 +61,14 @@ const WORLD_BOUNDS: L.LatLngBoundsExpression = [
   [85, 180],
 ];
 
-// ———————————————————————————
-// Smooth zoom helpers (typed, no `any`)
-// ———————————————————————————
-
-/** Bind a smooth flyTo on cluster clicks without mutating Leaflet types */
+/** Bind a smooth flyTo on cluster clicks (typed, no banned ts-comments) */
 function useClusterSmoothZoom(clusterRef: React.RefObject<unknown>) {
   const map = useMap();
 
   useEffect(() => {
-    const group = clusterRef.current as (L.LayerGroup & L.Evented & { options?: Record<string, unknown> }) | null;
+    const group =
+      (clusterRef.current as (L.LayerGroup & L.Evented & { on: L.Evented["on"]; off: L.Evented["off"] }) | null);
     if (!group) return;
-
-    // Disable default zoom-to-bounds via component prop (also guard here if present)
-    if (group.options && Object.prototype.hasOwnProperty.call(group.options, "zoomToBoundsOnClick")) {
-      // @ts-expect-error: plugin option may exist at runtime; we don't rely on it for typing
-      (group.options as { zoomToBoundsOnClick?: boolean }).zoomToBoundsOnClick = false;
-    }
 
     const onClusterClick: L.LeafletEventHandlerFn = (e) => {
       const withLayer = e as L.LeafletEvent & { layer?: L.Marker };
@@ -138,7 +129,7 @@ export default function MapView() {
           detectRetina
         />
 
-        {/* Smooth cluster clicks + no default zoom-to-bounds */}
+        {/* Use plugin prop to avoid default jump-to-bounds; add smooth click handler */}
         <MarkerClusterGroup
           ref={clusterRef}
           chunkedLoading
