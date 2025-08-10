@@ -1,68 +1,117 @@
 // ✅ Full code for src/components/ClaimEmailForm.tsx
-'use client';
+// Rule1: replace the current file with this version.
+//
+// What it does
+// - Simple email form to start a claim via /api/claim
+// - Uses safeFetchJson so empty/invalid JSON never crashes the UI
+// - Accessible labels, proper inputMode, and clear status messages
+// - No @ts-expect-error, no any, aligns with AllRules
 
-import { useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+"use client";
 
-export default function ClaimEmailForm() {
-  const router = useRouter();
-  const params = useSearchParams();
-  const username = (params.get('u') || '').toLowerCase();
-  const [email, setEmail] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState('');
+import { useState } from "react";
+import { safeFetchJson } from "@/lib/safeJson";
 
-  useEffect(() => {
-    if (!username) router.replace('/');
-  }, [username, router]);
+type ClaimResponse = {
+  ok?: boolean;
+  message?: string;
+  redirect?: string;
+  error?: string;
+};
 
-  async function onSubmit(e: React.FormEvent) {
+export default function ClaimEmailForm({ className = "" }: { className?: string }) {
+  const [email, setEmail] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [notice, setNotice] = useState<string>("");
+  const [error, setError] = useState<string>("");
+
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setBusy(true);
-    setErr('');
+    setError("");
+    setNotice("");
+
+    // Basic email sanity check
+    const trimmed = email.trim();
+    if (!/^\S+@\S+\.\S+$/.test(trimmed)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
+    setSubmitting(true);
     try {
-      const res = await fetch('/api/claim', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, email }),
+      const { data, ok, status } = await safeFetchJson<ClaimResponse>("/api/claim", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ email: trimmed }),
       });
-      if (!res.ok) {
-        const data: { error?: string } = await res.json().catch(() => ({} as { error?: string }));
-        throw new Error(data.error || 'Unable to claim');
+
+      if (!ok) {
+        setError(`Could not start claim (HTTP ${status}). Please try again.`);
+        return;
       }
-      router.push(`/plans?u=${encodeURIComponent(username)}`);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Something went wrong';
-      setErr(message);
+
+      // If API gives us a redirect URL, follow it (optional)
+      const redirect = data && typeof data.redirect === "string" ? data.redirect : null;
+      if (redirect) {
+        window.location.href = redirect;
+        return;
+      }
+
+      const msg =
+        (data && (data.message || (data.ok ? "Check your email to continue." : ""))) ||
+        "If the address exists, we’ve sent instructions to continue your claim.";
+      setNotice(msg);
+      setEmail("");
+    } catch {
+      setError("Network problem. Please check your connection and try again.");
     } finally {
-      setBusy(false);
+      setSubmitting(false);
     }
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
-      <p className="text-gray-600">You’re claiming: <span className="font-mono font-semibold">digi.site/{username}</span></p>
-      <label className="block">
-        <span className="text-sm font-medium">Your email</span>
-        <input
-          type="email"
-          required
-          className="mt-1 w-full rounded-xl border px-3 py-2"
-          placeholder="you@example.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
+    <form onSubmit={onSubmit} className={`max-w-md w-full ${className}`} noValidate>
+      <label htmlFor="claim-email" className="block text-sm font-medium text-gray-800">
+        Your email address
       </label>
 
-      {err && <p className="text-sm text-red-600">{err}</p>}
+      <input
+        id="claim-email"
+        type="email"
+        inputMode="email"
+        autoComplete="email"
+        required
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black"
+        placeholder="you@example.com"
+      />
 
       <button
         type="submit"
-        disabled={busy}
-        className={`rounded-xl px-4 py-2 font-medium text-white ${busy ? 'bg-gray-400' : 'bg-black hover:bg-gray-800'}`}
+        disabled={submitting}
+        className="mt-3 w-full rounded-lg bg-black text-white py-2 font-medium hover:opacity-90 disabled:opacity-60"
       >
-        {busy ? 'Reserving…' : 'Continue to plans'}
+        {submitting ? "Sending…" : "Send claim link"}
       </button>
+
+      {/* Status area */}
+      <div className="mt-3 min-h-[1.5rem]" aria-live="polite" aria-atomic="true">
+        {error && (
+          <p className="rounded-md bg-red-50 text-red-800 px-3 py-2 text-sm">
+            {error}
+          </p>
+        )}
+        {!error && notice && (
+          <p className="rounded-md bg-green-50 text-green-800 px-3 py-2 text-sm">
+            {notice}
+          </p>
+        )}
+      </div>
+
+      <p className="mt-2 text-xs text-gray-500">
+        We’ll send a secure link to verify ownership.
+      </p>
     </form>
   );
 }
