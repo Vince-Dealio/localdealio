@@ -1,4 +1,4 @@
-// ✅ Full code for docs/AllRules/INDEX.md — safe to delete file content and replace entirely
+// ✅ Full code for docs/AllRules/INDEX.md — replace entire file
 
 # All Rules – Index (LocalDealio)
 
@@ -44,6 +44,7 @@ Summary: Central navigation page for all LocalDealio rules, grouped by category.
 - MISC-01: Reserved URL paths (Status: Active)
 - MISC-02: Project naming conventions (Status: Active)
 - MISC-03: General UI consistency (Status: Active)
+- **DOMAINS-01: Redirect `www` → apex (308)** (Status: Active)
 
 ---
 
@@ -55,4 +56,4 @@ Summary: Central navigation page for all LocalDealio rules, grouped by category.
 ---
 
 ## Changelog
-- 2025-08-10: Updated format with ID, Last Updated, Summary headings for consistency.
+- 2025-08-10: Added DOMAINS-01 (www → apex 308) and updated index.

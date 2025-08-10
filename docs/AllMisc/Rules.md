@@ -1,4 +1,4 @@
-// ✅ Full code for docs/AllMisc/Rules.md — safe to delete file content and replace entirely
+// ✅ Full code for docs/AllMisc/Rules.md — replace entire file
 
 # Miscellaneous Rules (LocalDealio)
 
@@ -51,3 +51,26 @@ Summary: Central page for cross-cutting or uncategorized rules.
 **How to Verify**
 - UI review shows consistent patterns.
 - No ad-hoc inline styles for reusable components.
+
+---
+
+## DOMAINS-01 — Redirect `www` to apex (308)
+**Status:** Active  
+**Last Updated:** 2025-08-10  
+**Summary:** All `www.localdeal.io` traffic permanently redirects to `https://localdeal.io` using a **308** redirect. Managed via Namecheap DNS + Vercel domain redirect.
+
+**The Rule**
+- **DNS (Namecheap):**  
+  - `A  @   76.76.21.21`  
+  - `CNAME  www  cname.vercel-dns.com`
+- **Vercel (Project → Settings → Domains):**  
+  - Add `www.localdeal.io`  
+  - Set **Redirect to** `localdeal.io` with **308 Permanent Redirect**  
+  - Ensure `localdeal.io` is **Primary**
+- Keep this redirect permanent to avoid duplicate content and SSL issues.
+
+**How to Verify**
+- `https://www.localdeal.io` → 308 to `https://localdeal.io`  
+- DevTools → Network shows first request **308** with `Location: https://localdeal.io/`, then **200** on apex.  
+- No certificate warning on `www`.
+
