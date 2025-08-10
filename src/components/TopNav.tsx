@@ -23,23 +23,19 @@ export default function TopNav() {
         {/* Hamburger */}
         <button
           aria-label="Open menu"
+          aria-haspopup="menu"
+          aria-expanded={open}
           onClick={() => setOpen((v) => !v)}
           className="inline-flex items-center justify-center h-10 w-10 rounded-md bg-black/30 hover:bg-black/40 border border-white/20 backdrop-blur text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]"
         >
           <span className="sr-only">Menu</span>
-          <svg
-            viewBox="0 0 24 24"
-            width="22"
-            height="22"
-            aria-hidden="true"
-            className="block"
-          >
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" className="block">
             <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
           </svg>
         </button>
       </div>
 
-      {/* Backdrop to close on outside click (sits above the map, below the panel) */}
+      {/* Backdrop to close on outside click */}
       {open && (
         <button
           aria-label="Close menu"
@@ -48,17 +44,17 @@ export default function TopNav() {
         />
       )}
 
-      {/* Compact menu panel (top-right), not full-screen */}
+      {/* Compact, right-aligned dropdown panel */}
       {open && (
         <nav
           aria-label="Site"
-          className="absolute right-4 top-16 z-50 w-64 sm:w-72 rounded-xl bg-white/95 backdrop-blur shadow-2xl ring-1 ring-black/10 overflow-hidden"
+          className="absolute right-2 top-14 z-50 w-56 sm:w-64 rounded-xl bg-white/95 backdrop-blur shadow-2xl ring-1 ring-black/10 overflow-hidden"
         >
-          <ul className="divide-y divide-gray-100">
+          <ul className="divide-y divide-gray-100 text-right">
             <li>
               <Link
                 href="/search"
-                className="block px-4 py-3 text-gray-800 hover:bg-gray-50"
+                className="block px-4 py-3 text-gray-800 hover:bg-gray-50 text-right"
                 onClick={() => setOpen(false)}
               >
                 Search
@@ -67,7 +63,7 @@ export default function TopNav() {
             <li>
               <Link
                 href="/plans"
-                className="block px-4 py-3 text-gray-800 hover:bg-gray-50"
+                className="block px-4 py-3 text-gray-800 hover:bg-gray-50 text-right"
                 onClick={() => setOpen(false)}
               >
                 Plans
@@ -76,7 +72,7 @@ export default function TopNav() {
             <li>
               <Link
                 href="/claim"
-                className="block px-4 py-3 text-gray-800 hover:bg-gray-50"
+                className="block px-4 py-3 text-gray-800 hover:bg-gray-50 text-right"
                 onClick={() => setOpen(false)}
               >
                 Claim Your Listing
@@ -85,7 +81,7 @@ export default function TopNav() {
             <li>
               <Link
                 href="/about"
-                className="block px-4 py-3 text-gray-800 hover:bg-gray-50"
+                className="block px-4 py-3 text-gray-800 hover:bg-gray-50 text-right"
                 onClick={() => setOpen(false)}
               >
                 About Us
@@ -94,7 +90,7 @@ export default function TopNav() {
             <li>
               <Link
                 href="/login"
-                className="block px-4 py-3 text-gray-800 hover:bg-gray-50"
+                className="block px-4 py-3 text-gray-800 hover:bg-gray-50 text-right"
                 onClick={() => setOpen(false)}
               >
                 Log in
