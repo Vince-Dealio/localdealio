@@ -3,7 +3,7 @@
 
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-markercluster";
 import "leaflet/dist/leaflet.css";
@@ -61,7 +61,7 @@ const WORLD_BOUNDS: L.LatLngBoundsExpression = [
   [85, 180],
 ];
 
-/** Bind a smooth flyTo on cluster clicks (typed, no banned ts-comments) */
+/** Bind a smooth flyTo on cluster clicks (typed, no ts-ignore) */
 function useClusterSmoothZoom(clusterRef: React.RefObject<unknown>) {
   const map = useMap();
 
@@ -103,14 +103,79 @@ function ZoomMarker(props: { position: LatLngTuple; label: string }) {
   );
 }
 
+/** Capture the map instance for use outside MapContainer */
+function MapReady({ onMap }: { onMap: (m: L.Map) => void }) {
+  const map = useMap();
+  useEffect(() => {
+    onMap(map);
+  }, [map, onMap]);
+  return null;
+}
+
+/** Pulsing "you are here" icon (DivIcon) */
+const pulseIcon = L.divIcon({
+  className: "ld-pulse-marker",
+  html: '<span class="ld-pulse-inner"></span>',
+  iconSize: [16, 16],
+  iconAnchor: [8, 8],
+});
+
 export default function MapView() {
   const clusterRef = useRef<unknown>(null);
+  const mapRef = useRef<L.Map | null>(null);
+
+  const [userLoc, setUserLoc] = useState<L.LatLngExpression | null>(null);
+  const [locating, setLocating] = useState(false);
+
+  const handleLocate = () => {
+    if (!navigator.geolocation) {
+      console.warn("Geolocation is not supported in this browser.");
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const latlng: L.LatLngExpression = [pos.coords.latitude, pos.coords.longitude];
+        setUserLoc(latlng);
+        const map = mapRef.current;
+        if (map) {
+          const targetZoom = Math.max(map.getZoom(), 14);
+          map.flyTo(latlng, targetZoom, { duration: 1.1, easeLinearity: 0.25 });
+        }
+        setLocating(false);
+      },
+      (err) => {
+        console.warn("Geolocation error:", err.message);
+        setLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+    );
+  };
 
   return (
-    <div className="h-full w-full">
+    <div className="h-full w-full relative">
+      {/* tiny CSS for pulse marker */}
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+          .ld-pulse-marker { position: relative; }
+          .ld-pulse-marker .ld-pulse-inner {
+            display:block; width:12px; height:12px; background:#0ea5e9; border-radius:50%;
+            box-shadow: 0 0 0 rgba(14,165,233,0.7);
+            animation: ld-pulse 2s infinite;
+          }
+          @keyframes ld-pulse {
+            0%   { box-shadow: 0 0 0 0 rgba(14,165,233,0.55); }
+            70%  { box-shadow: 0 0 0 12px rgba(14,165,233,0); }
+            100% { box-shadow: 0 0 0 0 rgba(14,165,233,0); }
+          }
+        `,
+        }}
+      />
+
       <MapContainer
-        center={[20, 0]}        // world-ish center
-        zoom={3}                // start zoomed out
+        center={[20, 0]} // world-ish center
+        zoom={3} // start zoomed out
         minZoom={3}
         maxZoom={19}
         zoomControl={false}
@@ -129,7 +194,7 @@ export default function MapView() {
           detectRetina
         />
 
-        {/* Use plugin prop to avoid default jump-to-bounds; add smooth click handler */}
+        {/* Smooth cluster clicks; disable jump-to-bounds */}
         <MarkerClusterGroup
           ref={clusterRef}
           chunkedLoading
@@ -142,7 +207,38 @@ export default function MapView() {
             <ZoomMarker key={m.id} position={m.pos} label={m.label} />
           ))}
         </MarkerClusterGroup>
+
+        {/* User location marker (if available) */}
+        {userLoc && (
+          <Marker position={userLoc} icon={pulseIcon}>
+            <Popup>You are here</Popup>
+          </Marker>
+        )}
+
+        {/* capture map ref */}
+        <MapReady onMap={(m) => (mapRef.current = m)} />
       </MapContainer>
+
+      {/* Locate Me floating button (bottom-right) */}
+      <button
+        type="button"
+        onClick={handleLocate}
+        disabled={locating}
+        aria-label="Locate me"
+        className="absolute bottom-4 right-4 z-[1000] rounded-full bg-white/95 hover:bg-white text-gray-800 shadow-lg ring-1 ring-black/10 p-3 disabled:opacity-60"
+        title="Locate me"
+      >
+        {/* target/crosshair icon */}
+        <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            d="M12 3v2m0 14v2m9-9h-2M5 12H3m14 0a5 5 0 10-10 0 5 5 0 0010 0z"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
+        </svg>
+      </button>
     </div>
   );
 }
