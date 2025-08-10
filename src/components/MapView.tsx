@@ -120,6 +120,13 @@ const pulseIcon = L.divIcon({
   iconAnchor: [8, 8],
 });
 
+// Basic iOS detection for better instructions
+function isIOS(): boolean {
+  if (typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent || "";
+  return /iPhone|iPad|iPod/i.test(ua);
+}
+
 export default function MapView() {
   const clusterRef = useRef<unknown>(null);
   const mapRef = useRef<L.Map | null>(null);
@@ -127,6 +134,7 @@ export default function MapView() {
   const [userLoc, setUserLoc] = useState<L.LatLngExpression | null>(null);
   const [status, setStatus] = useState<"idle" | "locating" | "error">("idle");
   const [errMsg, setErrMsg] = useState<string>("");
+  const [showIOSHelp, setShowIOSHelp] = useState(false);
 
   const handleLocate = () => {
     const map = mapRef.current;
@@ -134,6 +142,7 @@ export default function MapView() {
 
     setStatus("locating");
     setErrMsg("");
+    setShowIOSHelp(false);
 
     const onFound = (e: L.LocationEvent) => {
       const latlng = e.latlng;
@@ -145,19 +154,27 @@ export default function MapView() {
       setStatus("idle");
     };
 
-    const onError = (e: L.ErrorEvent) => {
+    const onError = (e: L.ErrorEvent & { code?: number }) => {
       setStatus("error");
       setErrMsg(e.message || "Location unavailable");
+
+      // iOS-specific help when permission is denied
+      if (isIOS() && (e.code === 1 || /denied/i.test(e.message))) {
+        setShowIOSHelp(true);
+      }
+
       map.off("locationfound", onFound);
       map.off("locationerror", onError);
-      // auto-hide error after a bit
-      setTimeout(() => setStatus("idle"), 3500);
+
+      // auto-hide generic toast if we don't show the help card
+      if (!showIOSHelp) {
+        setTimeout(() => setStatus("idle"), 3500);
+      }
     };
 
     map.once("locationfound", onFound);
     map.once("locationerror", onError);
 
-    // Use Leaflet's locate (wraps browser geolocation; HTTPS required)
     map.locate({
       setView: false,
       enableHighAccuracy: true,
@@ -254,10 +271,41 @@ export default function MapView() {
         </svg>
       </button>
 
-      {/* tiny toast for status/error */}
-      {status !== "idle" && (
+      {/* generic toast for status/error (hidden if iOS help is shown) */}
+      {status !== "idle" && !showIOSHelp && (
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[1000] rounded-full bg-black/70 text-white text-sm px-3 py-1">
           {status === "locating" ? "Finding your location…" : errMsg || "Location unavailable"}
+        </div>
+      )}
+
+      {/* iOS help card when permission is denied */}
+      {showIOSHelp && (
+        <div className="fixed inset-0 z-[1200] flex items-end sm:items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white shadow-2xl ring-1 ring-black/10 p-4">
+            <h3 className="font-semibold text-gray-900 mb-2">Enable Location on iPhone</h3>
+            <ol className="text-sm text-gray-700 space-y-2 list-decimal list-inside">
+              <li>In Safari: tap <strong>aA</strong> → <strong>Website Settings</strong> → <strong>Location</strong> → <strong>Allow</strong>, then refresh.</li>
+              <li>Or in Settings app: <strong>Privacy &amp; Security</strong> → <strong>Location Services</strong> → <strong>Safari Websites</strong> → <strong>While Using</strong> and enable <strong>Precise Location</strong>.</li>
+              <li>For Chrome on iOS: Settings app → <strong>Chrome</strong> → <strong>Location</strong> → <strong>While Using</strong>.</li>
+            </ol>
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                onClick={() => setShowIOSHelp(false)}
+                className="px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-800"
+              >
+                Dismiss
+              </button>
+              <button
+                onClick={() => {
+                  setShowIOSHelp(false);
+                  handleLocate();
+                }}
+                className="px-3 py-2 rounded-lg bg-black text-white hover:opacity-90"
+              >
+                Try again
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
