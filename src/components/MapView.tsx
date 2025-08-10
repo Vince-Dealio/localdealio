@@ -64,21 +64,26 @@ export default function MapView() {
   return (
     <div className="h-full w-full">
       <MapContainer
-        center={[51.5074, -0.1278]}
-        zoom={12}
-        minZoom={4}             // ← don't allow zooming too far out (prevents grey bands)
-        maxZoom={19}            // allow closer zoom
-        zoomControl={false}     // we removed buttons earlier
+        // Center roughly at the equator/prime meridian so the world view feels balanced
+        center={[20, 0]}
+        // Open zoomed out so most of the world is visible
+        zoom={3}
+        // Allow a touch more zoom-out if needed (but avoid grey bands)
+        minZoom={3}
+        // Keep rich detail available when zooming in
+        maxZoom={19}
+        // UI polish
+        zoomControl={false}
         scrollWheelZoom={true}
         worldCopyJump={true}
         maxBounds={WORLD_BOUNDS}
-        maxBoundsViscosity={1.0} // "sticky" bounds at the edges
-        style={{ height: "100%", width: "100%", background: "#000" }} // fallback background
+        maxBoundsViscosity={1.0}
+        style={{ height: "100%", width: "100%", background: "#000" }}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          minZoom={4}
+          minZoom={3}
           maxZoom={19}
           maxNativeZoom={19}
           detectRetina
