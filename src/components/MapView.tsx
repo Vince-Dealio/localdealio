@@ -61,25 +61,37 @@ const WORLD_BOUNDS: L.LatLngBoundsExpression = [
   [85, 180],
 ];
 
+// —— Types to avoid `any` for the cluster plugin ——
+interface ClusterClickEvent {
+  layer: L.Marker & { getLatLng: () => L.LatLng };
+}
+
+type ClusterClickHandler = (e: ClusterClickEvent) => void;
+
+interface MarkerClusterGroupLike extends L.FeatureGroup {
+  on(type: "clusterclick", fn: ClusterClickHandler): this;
+  off(type: "clusterclick", fn: ClusterClickHandler): this;
+  options: { zoomToBoundsOnClick?: boolean };
+}
+
 // ———————————————————————————
 // Helpers for smooth zoom on clicks
 // ———————————————————————————
 
-function useClusterSmoothZoom(clusterRef: React.RefObject<any>) {
+function useClusterSmoothZoom(clusterRef: React.RefObject<MarkerClusterGroupLike | null>) {
   const map = useMap();
   useEffect(() => {
     const group = clusterRef.current;
-    if (!group || !map) return;
+    if (!group) return;
 
-    const onClusterClick = (e: any) => {
-      // e.layer is the cluster
+    const onClusterClick: ClusterClickHandler = (e) => {
       const latlng = e.layer.getLatLng();
       const nextZoom = Math.min(map.getZoom() + 2, map.getMaxZoom());
       map.flyTo(latlng, nextZoom, { duration: 0.8, easeLinearity: 0.25 });
     };
 
-    // Disable default bounds-zoom so we control the motion
-    group.options.zoomToBoundsOnClick = false;
+    // Prevent default zoom-to-bounds behavior so we control the motion
+    if (group.options) group.options.zoomToBoundsOnClick = false;
 
     group.on("clusterclick", onClusterClick);
     return () => {
@@ -106,7 +118,7 @@ function ZoomMarker(props: { position: LatLngTuple; label: string }) {
 }
 
 export default function MapView() {
-  const clusterRef = useRef<any>(null);
+  const clusterRef = useRef<MarkerClusterGroupLike | null>(null);
 
   return (
     <div className="h-full w-full">
@@ -143,7 +155,7 @@ export default function MapView() {
   );
 }
 
-function SmoothClusterHook({ clusterRef }: { clusterRef: React.RefObject<any> }) {
+function SmoothClusterHook({ clusterRef }: { clusterRef: React.RefObject<MarkerClusterGroupLike | null> }) {
   useClusterSmoothZoom(clusterRef);
   return null;
 }
