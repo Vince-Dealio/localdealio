@@ -61,37 +61,32 @@ const WORLD_BOUNDS: L.LatLngBoundsExpression = [
   [85, 180],
 ];
 
-// —— Types to avoid `any` for the cluster plugin ——
-interface ClusterClickEvent {
-  layer: L.Marker & { getLatLng: () => L.LatLng };
-}
-
-type ClusterClickHandler = (e: ClusterClickEvent) => void;
-
-interface MarkerClusterGroupLike extends L.FeatureGroup {
-  on(type: "clusterclick", fn: ClusterClickHandler): this;
-  off(type: "clusterclick", fn: ClusterClickHandler): this;
-  options: { zoomToBoundsOnClick?: boolean };
-}
-
 // ———————————————————————————
-// Helpers for smooth zoom on clicks
+// Smooth zoom helpers (typed, no `any`)
 // ———————————————————————————
 
-function useClusterSmoothZoom(clusterRef: React.RefObject<MarkerClusterGroupLike | null>) {
+/** Bind a smooth flyTo on cluster clicks without mutating Leaflet types */
+function useClusterSmoothZoom(clusterRef: React.RefObject<unknown>) {
   const map = useMap();
+
   useEffect(() => {
-    const group = clusterRef.current;
+    const group = clusterRef.current as (L.LayerGroup & L.Evented & { options?: Record<string, unknown> }) | null;
     if (!group) return;
 
-    const onClusterClick: ClusterClickHandler = (e) => {
-      const latlng = e.layer.getLatLng();
+    // Disable default zoom-to-bounds via component prop (also guard here if present)
+    if (group.options && Object.prototype.hasOwnProperty.call(group.options, "zoomToBoundsOnClick")) {
+      // @ts-expect-error: plugin option may exist at runtime; we don't rely on it for typing
+      (group.options as { zoomToBoundsOnClick?: boolean }).zoomToBoundsOnClick = false;
+    }
+
+    const onClusterClick: L.LeafletEventHandlerFn = (e) => {
+      const withLayer = e as L.LeafletEvent & { layer?: L.Marker };
+      const layer = withLayer.layer;
+      if (!layer) return;
+      const latlng = layer.getLatLng();
       const nextZoom = Math.min(map.getZoom() + 2, map.getMaxZoom());
       map.flyTo(latlng, nextZoom, { duration: 0.8, easeLinearity: 0.25 });
     };
-
-    // Prevent default zoom-to-bounds behavior so we control the motion
-    if (group.options) group.options.zoomToBoundsOnClick = false;
 
     group.on("clusterclick", onClusterClick);
     return () => {
@@ -118,7 +113,7 @@ function ZoomMarker(props: { position: LatLngTuple; label: string }) {
 }
 
 export default function MapView() {
-  const clusterRef = useRef<MarkerClusterGroupLike | null>(null);
+  const clusterRef = useRef<unknown>(null);
 
   return (
     <div className="h-full w-full">
@@ -143,8 +138,14 @@ export default function MapView() {
           detectRetina
         />
 
-        {/* Attach smooth zoom handlers to the cluster layer */}
-        <MarkerClusterGroup ref={clusterRef} chunkedLoading spiderfyOnMaxZoom>
+        {/* Smooth cluster clicks + no default zoom-to-bounds */}
+        <MarkerClusterGroup
+          ref={clusterRef}
+          chunkedLoading
+          spiderfyOnMaxZoom
+          zoomToBoundsOnClick={false}
+          showCoverageOnHover={false}
+        >
           <SmoothClusterHook clusterRef={clusterRef} />
           {markers.map((m) => (
             <ZoomMarker key={m.id} position={m.pos} label={m.label} />
@@ -155,7 +156,7 @@ export default function MapView() {
   );
 }
 
-function SmoothClusterHook({ clusterRef }: { clusterRef: React.RefObject<MarkerClusterGroupLike | null> }) {
+function SmoothClusterHook({ clusterRef }: { clusterRef: React.RefObject<unknown> }) {
   useClusterSmoothZoom(clusterRef);
   return null;
 }
