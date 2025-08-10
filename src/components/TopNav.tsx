@@ -12,7 +12,7 @@ export default function TopNav() {
       <div className="flex items-center justify-between px-4 py-4">
         <Link
           href="/"
-          className="text-xl font-bold tracking-tight text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]"
+          className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white drop-shadow-[0_3px_6px_rgba(0,0,0,0.85)]"
         >
           LocalDealio
         </Link>
