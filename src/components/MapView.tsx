@@ -125,36 +125,50 @@ export default function MapView() {
   const mapRef = useRef<L.Map | null>(null);
 
   const [userLoc, setUserLoc] = useState<L.LatLngExpression | null>(null);
-  const [locating, setLocating] = useState(false);
+  const [status, setStatus] = useState<"idle" | "locating" | "error">("idle");
+  const [errMsg, setErrMsg] = useState<string>("");
 
   const handleLocate = () => {
-    if (!navigator.geolocation) {
-      console.warn("Geolocation is not supported in this browser.");
-      return;
-    }
-    setLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const latlng: L.LatLngExpression = [pos.coords.latitude, pos.coords.longitude];
-        setUserLoc(latlng);
-        const map = mapRef.current;
-        if (map) {
-          const targetZoom = Math.max(map.getZoom(), 14);
-          map.flyTo(latlng, targetZoom, { duration: 1.1, easeLinearity: 0.25 });
-        }
-        setLocating(false);
-      },
-      (err) => {
-        console.warn("Geolocation error:", err.message);
-        setLocating(false);
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
-    );
+    const map = mapRef.current;
+    if (!map) return;
+
+    setStatus("locating");
+    setErrMsg("");
+
+    const onFound = (e: L.LocationEvent) => {
+      const latlng = e.latlng;
+      setUserLoc(latlng);
+      const targetZoom = Math.max(map.getZoom(), 14);
+      map.flyTo(latlng, targetZoom, { duration: 1.1, easeLinearity: 0.25 });
+      map.off("locationfound", onFound);
+      map.off("locationerror", onError);
+      setStatus("idle");
+    };
+
+    const onError = (e: L.ErrorEvent) => {
+      setStatus("error");
+      setErrMsg(e.message || "Location unavailable");
+      map.off("locationfound", onFound);
+      map.off("locationerror", onError);
+      // auto-hide error after a bit
+      setTimeout(() => setStatus("idle"), 3500);
+    };
+
+    map.once("locationfound", onFound);
+    map.once("locationerror", onError);
+
+    // Use Leaflet's locate (wraps browser geolocation; HTTPS required)
+    map.locate({
+      setView: false,
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 60000,
+    });
   };
 
   return (
     <div className="h-full w-full relative">
-      {/* tiny CSS for pulse marker */}
+      {/* tiny CSS for pulse marker & toast */}
       <style
         dangerouslySetInnerHTML={{
           __html: `
@@ -223,7 +237,7 @@ export default function MapView() {
       <button
         type="button"
         onClick={handleLocate}
-        disabled={locating}
+        disabled={status === "locating"}
         aria-label="Locate me"
         className="absolute bottom-4 right-4 z-[1000] rounded-full bg-white/95 hover:bg-white text-gray-800 shadow-lg ring-1 ring-black/10 p-3 disabled:opacity-60"
         title="Locate me"
@@ -239,6 +253,13 @@ export default function MapView() {
           />
         </svg>
       </button>
+
+      {/* tiny toast for status/error */}
+      {status !== "idle" && (
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[1000] rounded-full bg-black/70 text-white text-sm px-3 py-1">
+          {status === "locating" ? "Finding your location…" : errMsg || "Location unavailable"}
+        </div>
+      )}
     </div>
   );
 }
