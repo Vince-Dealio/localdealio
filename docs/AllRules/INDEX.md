@@ -14,38 +14,42 @@ Single, scannable index of all rules. Use this page to navigate.
 ---
 
 ## Dev & Lint Rules
-- [DEV-01: RuleDev1-LSLint – Use `<Link>` for internal navigation](./RuleDev1-LSLint.md) (Status: Active)
-- [DEV-02: RuleDev2-TSExpectError – Remove unused `@ts-expect-error`](./RuleDev2-TSExpectError.md) (Status: Active)
-- [DEV-03: RuleDev3-InputMode – Valid `inputMode` values only](./RuleDev3-InputMode.md) (Status: Active)
+- **Category Page:** [AllDev/Rules.md](../../AllDev/Rules.md)
+- DEV-01: Use `<Link>` for internal navigation (Status: Active)
+- DEV-02: Remove unused `@ts-expect-error` (Status: Active)
+- DEV-03: Valid `inputMode` values only (Status: Active)
 
 ---
 
 ## Build & Deploy Rules
-- [BUILD-01: .env.local Usage](./EnvLocalUsage.md) (Status: Active)
-- [BUILD-02: No comment lines in package.json](./NoCommentInPackageJSON.md) (Status: Active)
-- [BUILD-03: Keep Vercel builds clean of ESLint errors](./VercelBuildClean.md) (Status: Active)
+- **Category Page:** [AllBuild/Rules.md](../../AllBuild/Rules.md)
+- BUILD-01: `.env.local` usage (Status: Active)
+- BUILD-02: No comments in `package.json` (Status: Active)
+- BUILD-03: Keep Vercel builds lint/TS clean (Status: Active)
 
 ---
 
-## Auth & Security Rules
-- [SEC-01: Magic Link Login Flow](./MagicLinkLoginFlow.md) (Status: Active)
-- [SEC-02: Clerk vs NextAuth decision log](./ClerkVsNextAuth.md) (Status: Active)
+## Auth Rules
+- **Category Page:** [AllAuth/Rules.md](../../AllAuth/Rules.md)
+- AUTH-01: Magic Link login flow (Status: Active)
+- AUTH-02: Clerk vs NextAuth decision log (Status: Active)
 
 ---
 
 ## Other / Misc Rules
-- [MISC-01: Reserved URL paths](./ReservedPaths.md) (Status: Active)
-- [MISC-02: Project naming conventions](./ProjectNaming.md) (Status: Active)
-- [MISC-03: General UI consistency](./UIConsistency.md) (Status: Active)
+- **Category Page:** [AllMisc/Rules.md](../../AllMisc/Rules.md)
+- MISC-01: Reserved URL paths (Status: Active)
+- MISC-02: Project naming conventions (Status: Active)
+- MISC-03: General UI consistency (Status: Active)
 
 ---
 
 ## How to Add a New Rule
 1. If this is a **map** rule, add it to `AllMaps/MapRules.md` with a new `MAP-XX` ID.
-2. Otherwise, create or update a file in `docs/AllRules`, and add a link here under the correct category.
-3. Use the template: [`RULES_TEMPLATE.md`](./RULES_TEMPLATE.md)
+2. Otherwise, add it to the correct category page (`AllDev`, `AllBuild`, `AllAuth`, `AllMisc`).
+3. If a rule truly needs its own file, create it under `docs/AllRules` and link it here.
 
 ---
 
 ## Changelog
-- 2025-08-10: Added central index, grouped all existing rules by category, linked MapRules category page.
+- 2025-08-10: Added category pages (Dev, Build, Auth, Misc) and updated index.
