@@ -3,7 +3,8 @@
 
 "use client";
 
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { useEffect, useRef } from "react";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-markercluster";
 import "leaflet/dist/leaflet.css";
 import "react-leaflet-markercluster/styles";
@@ -60,19 +61,60 @@ const WORLD_BOUNDS: L.LatLngBoundsExpression = [
   [85, 180],
 ];
 
+// ———————————————————————————
+// Helpers for smooth zoom on clicks
+// ———————————————————————————
+
+function useClusterSmoothZoom(clusterRef: React.RefObject<any>) {
+  const map = useMap();
+  useEffect(() => {
+    const group = clusterRef.current;
+    if (!group || !map) return;
+
+    const onClusterClick = (e: any) => {
+      // e.layer is the cluster
+      const latlng = e.layer.getLatLng();
+      const nextZoom = Math.min(map.getZoom() + 2, map.getMaxZoom());
+      map.flyTo(latlng, nextZoom, { duration: 0.8, easeLinearity: 0.25 });
+    };
+
+    // Disable default bounds-zoom so we control the motion
+    group.options.zoomToBoundsOnClick = false;
+
+    group.on("clusterclick", onClusterClick);
+    return () => {
+      group.off("clusterclick", onClusterClick);
+    };
+  }, [clusterRef, map]);
+}
+
+function ZoomMarker(props: { position: LatLngTuple; label: string }) {
+  const map = useMap();
+  return (
+    <Marker
+      position={props.position}
+      eventHandlers={{
+        click: () => {
+          const nextZoom = Math.min(map.getZoom() + 2, map.getMaxZoom());
+          map.flyTo(props.position, nextZoom, { duration: 0.8, easeLinearity: 0.25 });
+        },
+      }}
+    >
+      <Popup>{props.label}</Popup>
+    </Marker>
+  );
+}
+
 export default function MapView() {
+  const clusterRef = useRef<any>(null);
+
   return (
     <div className="h-full w-full">
       <MapContainer
-        // Center roughly at the equator/prime meridian so the world view feels balanced
-        center={[20, 0]}
-        // Open zoomed out so most of the world is visible
-        zoom={3}
-        // Allow a touch more zoom-out if needed (but avoid grey bands)
+        center={[20, 0]}        // world-ish center
+        zoom={3}                // start zoomed out
         minZoom={3}
-        // Keep rich detail available when zooming in
         maxZoom={19}
-        // UI polish
         zoomControl={false}
         scrollWheelZoom={true}
         worldCopyJump={true}
@@ -89,14 +131,19 @@ export default function MapView() {
           detectRetina
         />
 
-        <MarkerClusterGroup chunkedLoading>
+        {/* Attach smooth zoom handlers to the cluster layer */}
+        <MarkerClusterGroup ref={clusterRef} chunkedLoading spiderfyOnMaxZoom>
+          <SmoothClusterHook clusterRef={clusterRef} />
           {markers.map((m) => (
-            <Marker key={m.id} position={m.pos}>
-              <Popup>{m.label}</Popup>
-            </Marker>
+            <ZoomMarker key={m.id} position={m.pos} label={m.label} />
           ))}
         </MarkerClusterGroup>
       </MapContainer>
     </div>
   );
+}
+
+function SmoothClusterHook({ clusterRef }: { clusterRef: React.RefObject<any> }) {
+  useClusterSmoothZoom(clusterRef);
+  return null;
 }
