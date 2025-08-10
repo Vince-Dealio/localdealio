@@ -1,8 +1,11 @@
-// ✅ Full code for AllBuild/Rules.md — safe to create new file with this content
+// ✅ Full code for docs/AllBuild/Rules.md — safe to delete file content and replace entirely
 
 # Build & Deploy Rules (LocalDealio)
 
-Central page for build and deployment rules.
+ID: BUILD-CAT  
+Status: Active  
+Last Updated: 2025-08-10  
+Summary: Central page for build and deployment rules.
 
 ---
 

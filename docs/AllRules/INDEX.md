@@ -2,7 +2,10 @@
 
 # All Rules – Index (LocalDealio)
 
-Single, scannable index of all rules. Use this page to navigate.
+ID: INDEX  
+Status: Active  
+Last Updated: 2025-08-10  
+Summary: Central navigation page for all LocalDealio rules, grouped by category.
 
 ---
 
@@ -52,4 +55,4 @@ Single, scannable index of all rules. Use this page to navigate.
 ---
 
 ## Changelog
-- 2025-08-10: Updated MapRules link to point to docs/AllRules/MapRules.md.
+- 2025-08-10: Updated format with ID, Last Updated, Summary headings for consistency.

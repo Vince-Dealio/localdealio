@@ -2,7 +2,10 @@
 
 # MapRules (LocalDealio)
 
-A single, scannable page for all map-related rules and decisions. We’ll append to this as we go.
+ID: MAP-CAT  
+Status: Active  
+Last Updated: 2025-08-10  
+Summary: Single, scannable page for all map-related rules and decisions.
 
 ---
 

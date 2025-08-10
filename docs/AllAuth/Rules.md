@@ -1,8 +1,11 @@
-// ✅ Full code for AllAuth/Rules.md — safe to create new file with this content
+// ✅ Full code for docs/AllAuth/Rules.md — safe to delete file content and replace entirely
 
 # Auth Rules (LocalDealio)
 
-Central page for authentication decisions and practices.
+ID: AUTH-CAT  
+Status: Active  
+Last Updated: 2025-08-10  
+Summary: Central page for authentication decisions and practices.
 
 ---
 

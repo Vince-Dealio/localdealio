@@ -1,8 +1,11 @@
-// ✅ Full code for AllMisc/Rules.md — safe to create new file with this content
+// ✅ Full code for docs/AllMisc/Rules.md — safe to delete file content and replace entirely
 
 # Miscellaneous Rules (LocalDealio)
 
-Central page for cross-cutting or uncategorized rules.
+ID: MISC-CAT  
+Status: Active  
+Last Updated: 2025-08-10  
+Summary: Central page for cross-cutting or uncategorized rules.
 
 ---
 
