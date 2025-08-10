@@ -10,6 +10,8 @@ export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
   providers: [
     EmailProvider({
+      // Mirror the working digi.site pattern: blank server + custom sender
+      server: "",
       from: process.env.EMAIL_FROM || "noreply@localdeal.io",
       async sendVerificationRequest({ identifier, url }) {
         await sendVerificationRequest({ identifier, url });
@@ -18,6 +20,6 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   pages: {
-    verifyRequest: "/verify-email", // keep your existing page
+    verifyRequest: "/verify-email", // keep your page
   },
 };
