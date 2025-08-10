@@ -54,21 +54,32 @@ const markers: MarkerData[] = raw.map(([lat, lng, label], i) => ({
   label,
 }));
 
+// Clamp to the "world" and prevent panning off-map
+const WORLD_BOUNDS: L.LatLngBoundsExpression = [
+  [-85, -180],
+  [85, 180],
+];
+
 export default function MapView() {
   return (
     <div className="h-full w-full">
       <MapContainer
         center={[51.5074, -0.1278]}
         zoom={12}
+        minZoom={4}             // ← don't allow zooming too far out (prevents grey bands)
         maxZoom={19}            // allow closer zoom
-        zoomControl={false}     // hide Leaflet zoom buttons
-        scrollWheelZoom={true}  // ensure wheel zoom is enabled
-        style={{ height: "100%", width: "100%" }}
+        zoomControl={false}     // we removed buttons earlier
+        scrollWheelZoom={true}
+        worldCopyJump={true}
+        maxBounds={WORLD_BOUNDS}
+        maxBoundsViscosity={1.0} // "sticky" bounds at the edges
+        style={{ height: "100%", width: "100%", background: "#000" }} // fallback background
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          maxZoom={19}          // layer must also allow z19
+          minZoom={4}
+          maxZoom={19}
           maxNativeZoom={19}
           detectRetina
         />
