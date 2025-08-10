@@ -1,4 +1,6 @@
-// src/lib/sendVerificationRequest.ts
+// ✅ Full code for src/lib/sendVerificationRequest.ts
+// Rule1: delete the current file and replace with this version.
+
 import { resend } from "./resend";
 
 const BRAND = "LocalDealio";
@@ -8,11 +10,13 @@ export async function sendVerificationRequest(params: {
   url: string;        // magic link
 }): Promise<void> {
   const { identifier, url } = params;
+
+  // Plain address is safest; you can switch to a display name later if needed.
   const from = process.env.EMAIL_FROM || "noreply@localdeal.io";
 
-  const { data, error } = await resend.emails.send({
-    from,                 // keep as plain address; display name optional later via env
-    to: identifier,       // string (matches working digi.site pattern)
+  const { error } = await resend.emails.send({
+    from,
+    to: identifier, // string is fine; array also accepted
     subject: `Sign in to ${BRAND}`,
     html: `<p>Click the link below to sign in:</p><p><a href="${url}">${url}</a></p>`,
     text: `Sign in using this link: ${url}`,
