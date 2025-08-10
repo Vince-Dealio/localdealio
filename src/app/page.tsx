@@ -5,9 +5,9 @@ import dynamic from "next/dynamic";
 const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
 
 export default function HomePage() {
-  // Header in your layout is ~5rem (pt-20). Adjust if yours differs.
+  // Remove the top offset so the map fills the viewport edge-to-edge.
   return (
-    <div className="fixed inset-0 top-20"> 
+    <div className="fixed inset-0">
       <MapView />
     </div>
   );
