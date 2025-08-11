@@ -4,23 +4,21 @@ import Stripe from 'stripe';
 
 const API_VERSION: Stripe.StripeConfig['apiVersion'] = '2022-11-15';
 
-// Map your logical plan IDs to Stripe Price IDs
-const PRICE_MAP: Record<string, string> = {
-  standard: 'price_1RtSmg1s2cUrkeqf6qO0sXMc', // TODO: replace with your real ID
-  pro: 'price_1RtSo81s2cUrkeqfekXSSe2W',     // TODO: replace with your real ID
+// Price IDs from environment (best practice)
+const PRICE_MAP: Record<string, string | undefined> = {
+  standard: process.env.STRIPE_PRICE_STANDARD,
+  pro: process.env.STRIPE_PRICE_PRO,
 };
 
-// Lazy init so missing env doesn’t crash module import
+// Lazy init to avoid crashing module import if env is missing
 function getStripe(): Stripe {
   const key = process.env.STRIPE_SECRET_KEY;
-  if (!key) {
-    throw new Error('STRIPE_SECRET_KEY not set');
-  }
-  return new Stripe(key as string, { apiVersion: API_VERSION });
+  if (!key) throw new Error('STRIPE_SECRET_KEY not set');
+  return new Stripe(key, { apiVersion: API_VERSION });
 }
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
-  // Parse body as JSON or form-encoded
+  // Accept JSON or form-encoded requests
   const contentType = req.headers.get('content-type')?.toLowerCase() ?? '';
   let username: string | null = null;
   let plan: string | null = null;
@@ -31,15 +29,15 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       const body = await req.json();
       username = (body?.username ?? null) as string | null;
       plan = (body?.plan ?? body?.priceId ?? null) as string | null;
-      wantsJsonResponse = true;
+      wantsJsonResponse = true; // client expects { url }
     } else {
       const form = await req.formData();
       plan = (form.get('plan') as string | null) ?? null;
       username = (form.get('username') as string | null) ?? null;
-      wantsJsonResponse = false; // form posts expect redirect UX
+      wantsJsonResponse = false; // browser form → redirect UX
     }
   } catch {
-    // fall through with nulls
+    // leave values as null; handled below
   }
 
   if (!plan) {
@@ -48,26 +46,19 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   const priceId = PRICE_MAP[plan];
   if (!priceId) {
-    return NextResponse.json({ error: 'Invalid plan selected' }, { status: 400 });
+    return NextResponse.json({ error: 'Price not configured for selected plan' }, { status: 500 });
   }
 
-  // Build success/cancel URLs from current origin
   const origin = new URL(req.url).origin;
-  const successUrl = `${origin}/success`;
-  const cancelUrl = `${origin}/cancel`;
+  const successUrl = `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`;
+  const cancelUrl = `${origin}/checkout/cancel`;
 
   try {
     const stripe = getStripe();
 
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
-      payment_method_types: ['card'],
-      line_items: [
-        {
-          price: priceId,
-          quantity: 1,
-        },
-      ],
+      line_items: [{ price: priceId, quantity: 1 }],
       metadata: { username: username ?? '' },
       success_url: successUrl,
       cancel_url: cancelUrl,
@@ -76,14 +67,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     if (wantsJsonResponse) {
       return NextResponse.json({ url: session.url });
     }
-    // Form submit: redirect the browser to Stripe
     return NextResponse.redirect(session.url!, { status: 303 });
   } catch (error) {
     console.error('Stripe checkout error:', error);
 
-    // Graceful fallback for form posts in dev (no Stripe keys yet)
+    // In dev without Stripe config, fall back to local success so flows keep working
     if (!wantsJsonResponse) {
-      const url = new URL('/success', req.url);
+      const url = new URL('/checkout/success', origin);
       url.searchParams.set('plan', plan);
       if (username) url.searchParams.set('username', username);
       return NextResponse.redirect(url.toString(), { status: 303 });
