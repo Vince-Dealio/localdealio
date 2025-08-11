@@ -1,11 +1,11 @@
 // ✅ Full code for src/app/checkout/success/page.tsx — Rule1
 import Link from 'next/link';
 
-type PageProps = {
-  searchParams: Record<string, string | string[] | undefined>;
-};
-
-export default function CheckoutSuccessPage({ searchParams }: PageProps) {
+export default function CheckoutSuccessPage({
+  searchParams,
+}: {
+  searchParams?: { [key: string]: string | string[] | undefined };
+}) {
   const planParam = searchParams?.plan;
   const usernameParam = searchParams?.username;
 
