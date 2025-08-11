@@ -1,85 +1,135 @@
-// ✅ Full code for src/app/plans/page.tsx
-// Rule1: replace the current file with this version.
-// - Uses safeFetchJson so empty/invalid JSON never crashes the page.
-// - Graceful error UI + simple checkout flow.
+// ✅ Full code for src/app/plans/page.tsx — Rule1
+'use client';
 
-"use client";
+import Link from 'next/link';
+import { useState, useMemo } from 'react';
 
-import { useState } from "react";
-import { safeFetchJson } from "@/lib/safeJson";
-import Link from "next/link";
+type PlanId = 'standard' | 'pro';
 
-type CheckoutResponse = { url: string };
+type Plan = {
+  id: PlanId;
+  name: string;
+  priceMonthly: number; // in your display currency
+  blurb: string;
+  features: string[];
+  cta: string;
+};
 
-const PLANS = [
-  { id: "starter", name: "Starter", price: "£0", blurb: "Try it out." },
-  { id: "pro", name: "Pro", price: "£19/mo", blurb: "For growing listings." },
-  { id: "business", name: "Business", price: "£49/mo", blurb: "Advanced features." },
+const PLANS: Plan[] = [
+  {
+    id: 'standard',
+    name: 'Standard',
+    priceMonthly: 9,
+    blurb: 'Great for getting started with LocalDealio.',
+    features: [
+      'Public profile listing',
+      'Add basic details & links',
+      'Map pin with clustering',
+      'Email support',
+    ],
+    cta: 'Choose Standard',
+  },
+  {
+    id: 'pro',
+    name: 'Pro',
+    priceMonthly: 19,
+    blurb: 'For growing teams that want more reach.',
+    features: [
+      'Everything in Standard',
+      'Priority placement boost',
+      'Photo gallery',
+      'Priority support',
+    ],
+    cta: 'Choose Pro',
+  },
 ];
 
 export default function PlansPage() {
-  const [loadingId, setLoadingId] = useState<string | null>(null);
-  const [error, setError] = useState<string>("");
+  // state kept minimal; fully typed, no `any`
+  const [selected, setSelected] = useState<PlanId>('standard');
 
-  async function handleCheckout(planId: string) {
-    setError("");
-    setLoadingId(planId);
-    try {
-      const { data, ok, status } = await safeFetchJson<CheckoutResponse>("/api/checkout", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ planId }),
-      });
+  const selectedPlan = useMemo(
+    () => PLANS.find((p) => p.id === selected) ?? PLANS[0],
+    [selected]
+  );
 
-      if (!ok) {
-        setError(`Checkout failed (HTTP ${status}). Please try again.`);
-        return;
-      }
-
-      const url = data && typeof (data as any).url === "string" ? (data as any).url : null;
-      if (!url) {
-        setError("Checkout link unavailable. Please try again in a moment.");
-        return;
-      }
-
-      window.location.href = url;
-    } catch (e) {
-      setError("Network problem starting checkout. Please check your connection and try again.");
-    } finally {
-      setLoadingId(null);
-    }
-  }
+  // No unused event params; no `any`
+  const onSelect = (planId: PlanId) => {
+    setSelected(planId);
+  };
 
   return (
-    <main className="min-h-screen bg-white px-4 py-10">
-      <div className="mx-auto max-w-4xl">
-        <h1 className="text-3xl font-bold mb-6">Choose a plan</h1>
-        {error && (
-          <div className="mb-4 rounded-lg bg-red-50 text-red-800 px-4 py-3">
-            {error}
-          </div>
-        )}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {PLANS.map((p) => (
-            <div key={p.id} className="rounded-xl border border-gray-200 p-4 shadow-sm bg-white">
-              <h2 className="text-xl font-semibold">{p.name}</h2>
-              <p className="text-gray-700 mt-1">{p.blurb}</p>
-              <div className="text-2xl font-bold mt-4">{p.price}</div>
-              <button
-                onClick={() => handleCheckout(p.id)}
-                disabled={loadingId === p.id}
-                className="mt-4 w-full rounded-lg bg-black text-white py-2 hover:opacity-90 disabled:opacity-60"
-              >
-                {loadingId === p.id ? "Starting checkout…" : "Continue"}
-              </button>
-            </div>
-          ))}
-        </div>
-
-        <p className="text-sm text-gray-500 mt-6">
-          Have questions? <Link href="/about" className="underline">Contact us</Link>.
+    <main className="mx-auto max-w-5xl px-4 py-10">
+      <header className="mb-8 text-center">
+        <h1 className="text-3xl font-bold">Choose your plan</h1>
+        <p className="mt-2 text-gray-600">
+          Pick the plan that fits. You can upgrade anytime.
         </p>
-      </div>
+      </header>
+
+      <section className="grid gap-6 md:grid-cols-2">
+        {PLANS.map((plan) => {
+          const active = plan.id === selected;
+          return (
+            <article
+              key={plan.id}
+              className={`rounded-2xl border p-6 shadow-sm transition ${
+                active ? 'border-black' : 'border-gray-200'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold">{plan.name}</h2>
+                <button
+                  type="button"
+                  onClick={() => onSelect(plan.id)}
+                  className={`rounded-full px-3 py-1 text-sm ${
+                    active
+                      ? 'bg-black text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                  aria-pressed={active}
+                >
+                  {active ? 'Selected' : 'Select'}
+                </button>
+              </div>
+
+              <p className="mt-2 text-gray-700">{plan.blurb}</p>
+
+              <div className="mt-4">
+                <span className="text-4xl font-bold">£{plan.priceMonthly}</span>
+                <span className="ml-1 text-gray-600">/month</span>
+              </div>
+
+              <ul className="mt-4 list-disc space-y-1 pl-6 text-gray-700">
+                {plan.features.map((f) => (
+                  <li key={f}>{f}</li>
+                ))}
+              </ul>
+
+              {/* RuleDev1-LSLint: internal nav uses Link, not <a> */}
+              <Link
+                href={`/checkout?plan=${plan.id}`}
+                className="mt-6 inline-block w-full rounded-xl bg-black px-4 py-3 text-center font-medium text-white hover:opacity-90"
+                prefetch={false}
+              >
+                {plan.cta}
+              </Link>
+            </article>
+          );
+        })}
+      </section>
+
+      <aside className="mx-auto mt-8 max-w-2xl rounded-xl bg-gray-50 p-4 text-sm text-gray-700">
+        After payment, you’ll be redirected to your dashboard to set up your listing.
+      </aside>
+
+      {/* Helpful summary of the currently selected plan (purely UI) */}
+      <section className="mx-auto mt-10 max-w-2xl rounded-2xl border border-gray-200 p-6">
+        <h3 className="text-lg font-semibold">Selected plan</h3>
+        <p className="mt-1 text-gray-700">
+          <strong>{selectedPlan.name}</strong> — £{selectedPlan.priceMonthly}/month
+        </p>
+      </section>
     </main>
   );
 }
