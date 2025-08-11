@@ -1,13 +1,15 @@
 // ✅ Full code for src/app/checkout/success/page.tsx — Rule1
 import Link from 'next/link';
 
-export default function CheckoutSuccessPage({
+export default async function CheckoutSuccessPage({
   searchParams,
 }: {
-  searchParams?: { [key: string]: string | string[] | undefined };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const planParam = searchParams?.plan;
-  const usernameParam = searchParams?.username;
+  const sp = await searchParams;
+
+  const planParam = sp?.plan;
+  const usernameParam = sp?.username;
 
   const plan = Array.isArray(planParam) ? planParam[0] : planParam;
   const username = Array.isArray(usernameParam) ? usernameParam[0] : usernameParam;
