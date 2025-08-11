@@ -1,15 +1,14 @@
 // ✅ Full code for src/app/plans/page.tsx — Rule1
 'use client';
 
-import Link from 'next/link';
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 type PlanId = 'standard' | 'pro';
 
 type Plan = {
   id: PlanId;
   name: string;
-  priceMonthly: number; // in your display currency
+  priceMonthly: number; // display-only
   blurb: string;
   features: string[];
   cta: string;
@@ -45,7 +44,6 @@ const PLANS: Plan[] = [
 ];
 
 export default function PlansPage() {
-  // state kept minimal; fully typed, no `any`
   const [selected, setSelected] = useState<PlanId>('standard');
 
   const selectedPlan = useMemo(
@@ -53,10 +51,7 @@ export default function PlansPage() {
     [selected]
   );
 
-  // No unused event params; no `any`
-  const onSelect = (planId: PlanId) => {
-    setSelected(planId);
-  };
+  const onSelect = (planId: PlanId) => setSelected(planId);
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-10">
@@ -106,14 +101,21 @@ export default function PlansPage() {
                 ))}
               </ul>
 
-              {/* RuleDev1-LSLint: internal nav uses Link, not <a> */}
-              <Link
-                href={`/checkout?plan=${plan.id}`}
-                className="mt-6 inline-block w-full rounded-xl bg-black px-4 py-3 text-center font-medium text-white hover:opacity-90"
-                prefetch={false}
+              {/* POST form to /api/checkout with hidden plan field */}
+              <form
+                action="/api/checkout"
+                method="POST"
+                className="mt-6"
               >
-                {plan.cta}
-              </Link>
+                {/* Keep field name as "plan" unless your API expects a different key */}
+                <input type="hidden" name="plan" value={plan.id} />
+                <button
+                  type="submit"
+                  className="inline-block w-full rounded-xl bg-black px-4 py-3 text-center font-medium text-white hover:opacity-90"
+                >
+                  {plan.cta}
+                </button>
+              </form>
             </article>
           );
         })}
@@ -123,7 +125,6 @@ export default function PlansPage() {
         After payment, you’ll be redirected to your dashboard to set up your listing.
       </aside>
 
-      {/* Helpful summary of the currently selected plan (purely UI) */}
       <section className="mx-auto mt-10 max-w-2xl rounded-2xl border border-gray-200 p-6">
         <h3 className="text-lg font-semibold">Selected plan</h3>
         <p className="mt-1 text-gray-700">
