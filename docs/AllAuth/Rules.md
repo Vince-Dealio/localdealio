@@ -1,39 +1,51 @@
-// ✅ Full code for docs/AllAuth/Rules.md — safe to delete file content and replace entirely
+# AllAuth Rules
 
-# Auth Rules (LocalDealio)
+_Last updated: 2025-08-10_
 
-ID: AUTH-CAT  
-Status: Active  
-Last Updated: 2025-08-10  
-Summary: Central page for authentication decisions and practices.
+This file is the single source of truth for authentication in LocalDealio.
 
 ---
 
-## AUTH-01 — Magic Link Login Flow
-**Status:** Active  
-**Last Updated:** 2025-08-10  
-**Summary:** Primary auth is email magic link (NextAuth + Resend). Clear UX copy explains the flow.
-
-**The Rule**
-- Use NextAuth with Email Provider + Resend for magic links.
-- Keep logs free of secrets; never print tokens.
-- UX text: tell users to check inbox/spam and click the link.
-
-**How to Verify**
-- Users receive magic link at allowed addresses/domains.
-- Login sessions persist as expected; no secrets in logs.
+## Index
+- [AUTH-01 — Environments & Secrets](#auth-01--environments--secrets)
+- [AUTH-02 — NextAuth Structure & Runtime](#auth-02--nextauth-structure--runtime)
+- [AUTH-03 — Email Magic Link (NextAuth + Prisma + Resend + Neon)](#auth-03--email-magic-link-nextauth--prisma--resend--neon)
+- [Troubleshooting Quicklist](#troubleshooting-quicklist)
 
 ---
 
-## AUTH-02 — Clerk vs NextAuth Decision Log
-**Status:** Active  
-**Last Updated:** 2025-08-10  
-**Summary:** We chose NextAuth for control and cost. Clerk was evaluated but not adopted.
+## AUTH-01 — Environments & Secrets
+**Status:** Active
 
-**The Rule**
-- Continue with NextAuth unless future needs require hosted UI features.
-- Revisit if cost/complexity trade-offs change.
+- Local dev uses **`.env.local`** (never committed).  
+- Production secrets live in **Vercel → Project → Environment Variables**.
+- Required vars:
+  - `NEXTAUTH_URL = https://localdeal.io`
+  - `NEXTAUTH_SECRET = <long random hex>`
+  - `RESEND_API_KEY = re_...`
+  - `EMAIL_FROM = noreply@localdeal.io` _(plain address; optional display name later)_
+  - `DATABASE_URL = <Neon pooled URL with sslmode=require>`
+  - _(temp only)_ `NEXTAUTH_DEBUG = true`
+- Rotations:
+  - Changing `NEXTAUTH_SECRET` invalidates existing sessions (expected).
 
-**How to Verify**
-- Codebase references NextAuth only.
-- No lingering Clerk SDKs or webhooks in dependencies/config.
+---
+
+## AUTH-02 — NextAuth Structure & Runtime
+**Status:** Active
+
+- **Config lives in one place:** `src/lib/auth/options.ts` (no per-route duplication).
+- **Route wrapper:** `src/app/api/auth/[...nextauth]/route.ts` only imports and exposes the handler.
+  ```ts
+  import NextAuth from "next-auth";
+  import { authOptions } from "@/lib/auth/options";
+  export const dynamic = "force-dynamic";
+  export const runtime = "nodejs";
+  const handler = NextAuth(authOptions);
+  export { handler as GET, handler as POST };
+
+
+Adapter: PrismaAdapter(prisma) is required (NextAuth stores verification tokens).
+
+Session strategy: JWT (current default in options).
+
