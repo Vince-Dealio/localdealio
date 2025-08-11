@@ -1,4 +1,4 @@
-// ✅ /src/app/search/SearchResults.tsx
+// ✅ Full code for src/app/search/SearchResults.tsx — Rule1
 // Client component with all search logic moved here from the old page.tsx
 
 'use client';
@@ -6,6 +6,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { safeFetchJson } from '@/lib/safeJson';
 
 interface MiniRef {
   id: string;
@@ -15,10 +16,10 @@ interface MiniRef {
 
 interface ResultItem {
   id: string;
-  username: string;
-  displayName: string;
-  bio: string;
-  website: string;
+  name: string;
+  slug: string;
+  bio?: string | null;
+  category?: string | null;
   country: string;
   region: string;
   city: string;
@@ -48,20 +49,21 @@ export function SearchResults() {
 
   useEffect(() => {
     setLoading(true);
-    fetch(`/api/search?${qs}`)
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
-      .then((data: ResultItem[]) => setResults(data))
-      .catch((e) => setError(String(e)))
-      .finally(() => setLoading(false));
+    (async () => {
+      const { data, ok, status, text } = await safeFetchJson<ResultItem[]>(`/api/search?${qs}`);
+      if (!ok || !data) {
+        setError(`HTTP ${status}${text ? ` — ${text}` : ''}`);
+      } else {
+        setResults(data);
+      }
+      setLoading(false);
+    })();
   }, [qs]);
 
   return (
     <>
       <p className="text-gray-600 mb-6">
-        {qs ? `Filters: ${qs}` : 'No filters applied'}
+        {qs ? `Filters: ${qs}` : 'No filters applied.'}
       </p>
 
       {loading && <p>Loading…</p>}
@@ -77,53 +79,25 @@ export function SearchResults() {
             {results.map((r) => (
               <Link
                 key={r.id}
-                href={r.url}
-                className="block rounded border border-gray-200 hover:border-gray-300 bg-white p-4 shadow-sm"
+                href={`/listing/${r.slug}`}
+                className="block rounded-xl border border-gray-200 p-4 hover:bg-gray-50"
+                prefetch={false}
               >
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <h2 className="text-xl font-semibold">{r.displayName}</h2>
-                    <p className="text-sm text-gray-600">@{r.username}</p>
-                    {(r.country || r.region || r.city) && (
-                      <p className="text-sm text-gray-700 mt-1">
-                        {[r.city, r.region, r.country]
-                          .filter(Boolean)
-                          .join(', ')}
-                      </p>
-                    )}
-                  </div>
-                  {r.website && (
-                    <span className="text-sm text-blue-600 underline">
-                      {new URL(r.website).hostname.replace(/^www\./, '')}
-                    </span>
-                  )}
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold">{r.name}</h3>
+                  <span className="text-xs text-gray-500">{r.city}, {r.region}, {r.country}</span>
                 </div>
 
-                {r.categories.length > 0 && (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {r.categories.map((c) => (
-                      <span
-                        key={c.id}
-                        className="px-2 py-0.5 text-xs rounded-full bg-gray-100 border"
-                      >
-                        {c.name}
-                      </span>
+                {(r.categories?.length || r.tags?.length) ? (
+                  <div className="mt-2 flex flex-wrap gap-2 text-xs text-gray-700">
+                    {r.categories?.map(c => (
+                      <span key={`c-${c.id}`} className="rounded bg-gray-100 px-2 py-1">{c.name}</span>
+                    ))}
+                    {r.tags?.map(t => (
+                      <span key={`t-${t.id}`} className="rounded bg-gray-100 px-2 py-1">#{t.slug}</span>
                     ))}
                   </div>
-                )}
-
-                {r.tags.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {r.tags.map((t) => (
-                      <span
-                        key={t.id}
-                        className="px-2 py-0.5 text-xs rounded-full bg-green-50 border border-green-200"
-                      >
-                        #{t.slug}
-                      </span>
-                    ))}
-                  </div>
-                )}
+                ) : null}
 
                 {r.bio && <p className="mt-3 text-gray-800">{r.bio}</p>}
               </Link>
@@ -134,3 +108,5 @@ export function SearchResults() {
     </>
   );
 }
+
+export default SearchResults;
